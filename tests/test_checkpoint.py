@@ -34,18 +34,13 @@ class TestCheckpoint(unittest.TestCase):
                                input_vocab=mock.Mock(), output_vocab=mock.Mock())
         path = chk_point.save()
 
-        mock_model.save.assert_called_once_with(ANY)
-        state_dict = {'epoch': epoch, 'step': step, 'optimizer': opt_state_dict}
-
+        state_dict = {'epoch': epoch, 'step': step, 'optimizer': opt_state_dict, 'model': mock_model}
         mock_torch.save.assert_called_once_with(state_dict, ANY)
         os.system("rm -rf " + path)
 
     @mock.patch('seq2seq.util.checkpoint.os.path.isfile')
     def test_save_checkpoint_saves_vocab_if_not_exist(self, mock_os_path_exists):
         mock_model = mock.Mock()
-        model_dict = {"key1": "val1"}
-        mock_model.state_dict.return_value = model_dict
-
         opt_dict = {"key2":"val2"}
 
         epoch = 5
@@ -76,18 +71,19 @@ class TestCheckpoint(unittest.TestCase):
     def test_load(self, mock_vocabulary, mock_torch):
         dummy_vocabulary = mock.Mock()
         mock_optimizer_state_dict = mock.Mock()
-        torch_dict = {"optimizer": mock_optimizer_state_dict, "epoch": 5, "step": 10}
+        mock_model = mock.Mock()
+        torch_dict = {"optimizer": mock_optimizer_state_dict, "epoch": 5, "step": 10, "model": mock_model}
         mock_torch.load.return_value = torch_dict
 
         mock_vocabulary.load.return_value = dummy_vocabulary
-        loaded_chk_point = Checkpoint.load("mock_checkpoint_path")
+        loaded_chk_point = Checkpoint.load('mock_checkpoint_path')
 
-        mock_torch.load.assert_any_call("mock_checkpoint_path")
         mock_torch.load.assert_any_call(os.path.join('mock_checkpoint_path','model_checkpoint'))
 
         self.assertEquals(loaded_chk_point.epoch, torch_dict['epoch'])
         self.assertEquals(loaded_chk_point.optimizer_state_dict, torch_dict['optimizer'])
         self.assertEquals(loaded_chk_point.step, torch_dict['step'])
+        self.assertEquals(loaded_chk_point.model, torch_dict['model'])
 
 if __name__ == '__main__':
     unittest.main()
