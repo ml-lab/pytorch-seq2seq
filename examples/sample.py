@@ -14,7 +14,7 @@ from seq2seq.util.checkpoint import Checkpoint
 #     # training
 #     python examples/sample.py --train_path $TRAIN_PATH --dev_path $DEV_PATH --expt_dir $EXPT_PATH
 #     # resuming from the latest checkpoint of the experiment
-#      python examples/sample.py --train_path $TRAIN_PATH --dev_path $DEV_PATH --expt_dir $EXPT_PATH -resume
+#      python examples/sample.py --train_path $TRAIN_PATH --dev_path $DEV_PATH --expt_dir $EXPT_PATH --resume
 #      # resuming from a specific checkpoint
 #      python examples/sample.py --train_path $TRAIN_PATH --dev_path $DEV_PATH --expt_dir $EXPT_PATH --load_checkpoint $CHECKPOINT_DIR
 
@@ -62,7 +62,10 @@ else:
     if opt.resume:
         print("resuming training")
         latest_checkpoint = Checkpoint.get_latest_checkpoint(opt.expt_dir)
-        seq2seq.load(latest_checkpoint)
+        checkpoint = Checkpoint.load(latest_checkpoint)
+        seq2seq = checkpoint.model
+        input_vocab = checkpoint.input_vocab
+        output_vocab = checkpoint.output_vocab
     else:
         for param in seq2seq.parameters():
             param.data.uniform_(-0.08, 0.08)

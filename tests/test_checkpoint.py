@@ -71,10 +71,9 @@ class TestCheckpoint(unittest.TestCase):
         os.system("rm -rf " + path )
 
 
-    @mock.patch('seq2seq.util.checkpoint.Seq2seq')
     @mock.patch('seq2seq.util.checkpoint.torch')
     @mock.patch('seq2seq.util.checkpoint.Vocabulary')
-    def test_load(self, mock_vocabulary, mock_torch, mock_seq2seq):
+    def test_load(self, mock_vocabulary, mock_torch):
         dummy_vocabulary = mock.Mock()
         mock_optimizer_state_dict = mock.Mock()
         torch_dict = {"optimizer": mock_optimizer_state_dict, "epoch": 5, "step": 10}
@@ -84,7 +83,7 @@ class TestCheckpoint(unittest.TestCase):
         loaded_chk_point = Checkpoint.load("mock_checkpoint_path")
 
         mock_torch.load.assert_any_call("mock_checkpoint_path")
-        mock_seq2seq.load.assert_any_call(os.path.join('mock_checkpoint_path','model_checkpoint'))
+        mock_torch.load.assert_any_call(os.path.join('mock_checkpoint_path','model_checkpoint'))
 
         self.assertEquals(loaded_chk_point.epoch, torch_dict['epoch'])
         self.assertEquals(loaded_chk_point.optimizer_state_dict, torch_dict['optimizer'])
